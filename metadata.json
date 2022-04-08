@@ -1,7 +1,7 @@
 {
     "display_name": "Data Diagnostics",
     "keywords": ["Data", "Data Diagnostics", "Data Exploration", "Diagnostics", "Data Integrity", "Date Completeness"],
-    "methodology": [Data Exploration],
+    "methodology": ["Data Exploration"],
     "topic": [],
     "command": "",
 
