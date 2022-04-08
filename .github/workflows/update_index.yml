@@ -1,0 +1,90 @@
+name: update_index
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+    branches:
+      - master
+      - main
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6]
+
+    steps:
+
+      # SETUP
+
+      - name: Checkout grypi repo
+        uses: actions/checkout@v3
+        with:
+          path: 'grypi'
+          repository: 'ow-gryphon/grypi'
+
+      - name: Checkout this repo
+        uses: actions/checkout@v3
+        with:
+          path: 'template'
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # UPDATE INDEX
+
+      - name: Update index files
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          pip install beautifulsoup4
+          python template/.github/update_index_html.py
+
+      - name: Pushes index.html file
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: 'grypi/index.html'
+          destination_repo: 'ow-gryphon/grypi'
+          destination_branch: 'master'
+          user_email: 'vittorfpereira@gmail.com'
+          user_name: 'vittorfp'
+          commit_message: 'Updating index for the template ${{github.repository}}.'
+
+      - name: Pushes ${{github.event.repository.name}}/index.html file
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: 'grypi/${{github.event.repository.name}}/index.html'
+          destination_repo: 'ow-gryphon/grypi'
+          destination_folder: ${{ github.event.repository.name }}
+          destination_branch: 'master'
+          user_email: 'vittorfpereira@gmail.com'
+          user_name: 'vittorfp'
+          commit_message: 'Updating index for the template ${{github.repository}}.'
+
+      # UPDATE METADATA JSON
+      - name: Generates metadata file
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          python template/.github/update_metadata_json.py
+
+      - name: Pushes metadata file
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: 'template/metadata.json'
+          destination_repo: 'ow-gryphon/grypi'
+          destination_folder: ${{ github.event.repository.name }}
+          destination_branch: 'master'
+          user_email: 'vittorfpereira@gmail.com'
+          user_name: 'vittorfp'
+          commit_message: 'Adding metadata for the template ${{github.repository}}.'
