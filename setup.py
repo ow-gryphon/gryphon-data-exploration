@@ -8,7 +8,7 @@ with open('requirements.txt') as fr:
 
 setuptools.setup(
     name="Data Exploration",
-    version="v0.0.5",
+    version="v0.0.6",
     author="Daniel Wang",
     author_email="daniel.wang@oliverwyman.com",
     description="Data diagnostics for general data",
@@ -20,6 +20,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.7,
+    python_requires='>=3.7',
     install_requires=requirements,
 )

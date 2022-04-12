@@ -47,7 +47,7 @@ def main():
     else:
         with open(new_metadata_path, "r+", encoding="utf-8") as f:
             metadata = json.load(f)
-            
+
             if type(index_metadata) != list:
 
                 # if the metadata is not in the list format yet, convert it
@@ -66,6 +66,7 @@ def main():
     if dry_run:
         raise RuntimeError(f"Running dry. Not copying the files to the definitive place. "
                            f"Version name not valid: {tag_name}.")
+
 
 if __name__ == "__main__":
     main()

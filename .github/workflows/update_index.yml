@@ -42,7 +42,7 @@ jobs:
         run: |
           pip install beautifulsoup4
           python template/.github/update_index_html.py
-      
+
       # UPDATE METADATA JSON
       - name: Generates metadata file
         env:
@@ -57,6 +57,19 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
           source_file: 'grypi/${{github.event.repository.name}}/index.html'
+          destination_repo: 'ow-gryphon/grypi'
+          destination_folder: ${{ github.event.repository.name }}
+          destination_branch: 'master'
+          user_email: 'vittorfpereira@gmail.com'
+          user_name: 'vittorfp'
+          commit_message: 'Updating index for the template ${{github.repository}}.'
+
+      - name: Pushes root index.html file
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: 'grypi/index.html'
           destination_repo: 'ow-gryphon/grypi'
           destination_folder: ${{ github.event.repository.name }}
           destination_branch: 'master'
