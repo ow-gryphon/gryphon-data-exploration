@@ -71,7 +71,6 @@ jobs:
         with:
           source_file: 'grypi/index.html'
           destination_repo: 'ow-gryphon/grypi'
-          destination_folder: ${{ github.event.repository.name }}
           destination_branch: 'master'
           user_email: 'vittorfpereira@gmail.com'
           user_name: 'vittorfp'
