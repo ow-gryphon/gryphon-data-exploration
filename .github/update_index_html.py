@@ -89,8 +89,10 @@ def register(args):
     template = template.replace("_author", args["author"])
     template = template.replace("_long_description", args["long description"])
 
-    os.mkdir(n_package_name)
-    package_index = os.path.join("grypi", n_package_name, "index.html")
+    package_index = os.path.join("grypi", n_package_name)
+    os.mkdir(package_index)
+    package_index = os.path.join(package_index, "index.html")
+
     with open(package_index, "w") as f:
         f.write(template)
 
@@ -161,8 +163,9 @@ def main():
     repo_name = context["repository"].split("/")[-1]
     tag_name = context["event"]["ref"].split("/")[-1]
 
-    if not VERSION_PATTERN.match(tag_name):
-        raise RuntimeError(f"Version name not valid: {tag_name}")
+    # dry_run = False
+    # if not VERSION_PATTERN.match(tag_name):
+    #     dry_run = True
 
     metadata_file = f"template/metadata.json"
     metadata = parse_metadata(metadata_file)

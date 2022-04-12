@@ -36,26 +36,21 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # UPDATE INDEX
-
       - name: Update index files
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
           pip install beautifulsoup4
           python template/.github/update_index_html.py
-
-      - name: Pushes index.html file
-        uses: dmnemec/copy_file_to_another_repo_action@main
+      
+      # UPDATE METADATA JSON
+      - name: Generates metadata file
         env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: 'grypi/index.html'
-          destination_repo: 'ow-gryphon/grypi'
-          destination_branch: 'master'
-          user_email: 'vittorfpereira@gmail.com'
-          user_name: 'vittorfp'
-          commit_message: 'Updating index for the template ${{github.repository}}.'
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          python template/.github/update_metadata_json.py
 
+      # Coping files
       - name: Pushes ${{github.event.repository.name}}/index.html file
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
@@ -68,13 +63,6 @@ jobs:
           user_email: 'vittorfpereira@gmail.com'
           user_name: 'vittorfp'
           commit_message: 'Updating index for the template ${{github.repository}}.'
-
-      # UPDATE METADATA JSON
-      - name: Generates metadata file
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: |
-          python template/.github/update_metadata_json.py
 
       - name: Pushes metadata file
         uses: dmnemec/copy_file_to_another_repo_action@main
