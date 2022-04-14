@@ -8,7 +8,7 @@ with open('requirements.txt') as fr:
 
 setuptools.setup(
     name="Data Exploration",
-    version="v0.0.11",
+    version="v0.0.12",
     author="Daniel Wang",
     author_email="daniel.wang@oliverwyman.com",
     description="Data diagnostics for general data",
