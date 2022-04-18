@@ -5,85 +5,20 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
     branches:
+      - master
       - main
 
 jobs:
-  update-index:
+  Send-file-to-index:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6]
-
     steps:
 
-      # SETUP
-
-      - name: Checkout grypi repo
-        uses: actions/checkout@v3
-        with:
-          path: 'grypi'
-          repository: 'ow-gryphon/grypi'
-
-      - name: Checkout this repo
-        uses: actions/checkout@v3
-        with:
-          path: 'template'
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      # UPDATE INDEX
-      - name: Update index files
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: |
-          pip install beautifulsoup4
-          python template/.github/update_index_html.py
-
-      # UPDATE METADATA JSON
-      - name: Generates metadata file
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: |
-          python template/.github/update_metadata_json.py
-
-      # Coping files
-      - name: Pushes ${{github.event.repository.name}}/index.html file
-        uses: dmnemec/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: 'grypi/${{github.event.repository.name}}/index.html'
-          destination_repo: 'ow-gryphon/grypi'
-          destination_folder: ${{ github.event.repository.name }}
-          destination_branch: 'master'
-          user_email: 'vittorfpereira@gmail.com'
-          user_name: 'vittorfp'
-          commit_message: 'Updating index for the template ${{github.repository}}.'
-
-      - name: Pushes root index.html file
-        uses: dmnemec/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: 'grypi/index.html'
-          destination_repo: 'ow-gryphon/grypi'
-          destination_branch: 'master'
-          user_email: 'vittorfpereira@gmail.com'
-          user_name: 'vittorfp'
-          commit_message: 'Updating index for the template ${{github.repository}}.'
-
-      - name: Pushes metadata file
-        uses: dmnemec/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: 'template/metadata.json'
-          destination_repo: 'ow-gryphon/grypi'
-          destination_folder: ${{ github.event.repository.name }}
-          destination_branch: 'master'
-          user_email: 'vittorfpereira@gmail.com'
-          user_name: 'vittorfp'
-          commit_message: 'Adding metadata for the template ${{github.repository}}.'
+    - name: Pushes test file
+      uses: ow-gryphon/update-grypi-action@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      with:
+        repository_name: ${{ github.event.repository.name }}
+        user_email: 'vittorfpereira@gmail.com'
+        user_name: 'vittorfp'
