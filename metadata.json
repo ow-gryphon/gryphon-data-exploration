@@ -1,5 +1,5 @@
 {
-    "display_name": "Data Diagnostics",
+    "display_name": "Data Diagnostics for NCT",
     "keywords": ["Data", "Data Diagnostics", "Data Exploration", "Diagnostics", "Data Integrity", "Date Completeness"],
     "methodology": ["Data Exploration"],
     "command": "generate",
