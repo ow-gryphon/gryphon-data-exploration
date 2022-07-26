@@ -24,8 +24,7 @@ def get_numerical_info(
     
     # Check there are columns available
     if len(numeric_frame.columns) == 0:
-        print("No data within")
-        return None
+        raise LookupError("No numeric variables in data")
     
     numerical_summary = pd.concat([
         pd.DataFrame([
@@ -48,7 +47,37 @@ def get_numerical_info(
         display.display(numerical_summary)
 
     return numerical_summary
+    
+    
+def numerical_correlation(
+        frame: pd.DataFrame,
+        method: str = 'pearson',
+        figsize: Tuple[float, float] = (10, 6),
+        title: str = "Pairwise correlation among variables",
+        cmap = None
+):
+    """
+    Get correlation matrix between numerical variables using pandas .corr() method
+    
+    :param frame: pandas Dataframe to examine. Only numerical variables will be used
+    :param method: 'method' argument used by pandas .corr(), i.e. {‘pearson’, ‘kendall’, ‘spearman’} or callable
+    :param figsize: Figure size for matplotlib
+    :param title: Title of the figure
+    :param cmap: Colormap to use (if not default)
+    """
+    
+    numeric_frame = frame.select_dtypes(include=np.number)
+    
+    # Check there are columns available
+    if len(numeric_frame.columns) == 0:
+        raise LookupError("No numeric variables in data")
 
+    correlation = numeric_frame.corr(method=method)
+    fig = _plot_correlation_matrix(correlation, figsize, title, cmap)
+    
+    return fig, correlation
+
+    
 
 def get_non_numerical_info(frame: pd.DataFrame,
     print_frame: Optional[bool] = True
@@ -65,8 +94,7 @@ def get_non_numerical_info(frame: pd.DataFrame,
         
     # Check there are columns available
     if len(non_numerical_frame.columns) == 0:
-        print("No data within")
-    #     return None
+        raise LookupError("No non-numeric variables in data")
 
     non_numerical_summary = pd.DataFrame([
                   non_numerical_frame.dtypes,
@@ -80,7 +108,7 @@ def get_non_numerical_info(frame: pd.DataFrame,
                   non_numerical_frame.apply(lambda x: _check_if_numeric(x), axis=0),
                   non_numerical_frame.apply(lambda x: _check_if_datetime(x), axis=0),
                   ],
-                 index=["data type","count", "# non-missing", "# missing", "# of blanks", "# unique values", "mode (first)", 
+                 index=["data type","count", "# non-missing", "# missing", "# of blanks", "# unique values", "most frequent", 
                         "average length", "potentially numeric", "potentially datetime"])
             
     if print_frame:
@@ -156,12 +184,18 @@ def null_line_chart(
 
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(1, 1, 1)
-
-    plt.plot(missing_summary['dimension'],missing_summary['q25'], label='25th percentile # missings', 
-             color="green", linestyle='dashed')
-    plt.plot(missing_summary['dimension'],missing_summary['q75'], label='75th percentile # missings', 
-             color="orange", linestyle='dashed')
-    plt.plot(missing_summary['dimension'],missing_summary['median'], label='Median # missings', color = 'black')
+    
+    if dimension is not None:
+    
+        plt.plot(missing_summary['dimension'],missing_summary['_q25'], label='25th percentile # missings', 
+                 color="green", linestyle='dashed')
+        plt.plot(missing_summary['dimension'],missing_summary['_q75'], label='75th percentile # missings', 
+                 color="orange", linestyle='dashed')
+        plt.plot(missing_summary['dimension'],missing_summary['median'], label='Median # missings', color = 'black')
+        
+    else:
+        plt.plot(missing_summary['dimension'],missing_summary['median'], label='# missings', color = 'black')
+        
     plt.title(title)
     plt.xlabel('row index' if dimension is None else dimension)
     plt.ylabel("# of missings in each row")
@@ -227,6 +261,36 @@ def null_by_bin_chart(
         
     return fig, missing_data_grouped.agg([np.mean, np.std, np.median,  min, _q25, _q75, max]).sort_index().reset_index()
     
+    
+def missing_value_correlation(
+        frame: pd.DataFrame,
+        method: str = 'pearson',
+        blanks_as_null: bool = True,
+        figsize: Tuple[float, float] = (10, 6),
+        title: str = "Correlation among missing values across variables",
+        cmap = None
+):
+    """
+    Get correlation matrix between numerical variables using pandas .corr() method
+    
+    :param frame: pandas Dataframe to examine. Only numerical variables will be used
+    :param method: 'method' argument used by pandas .corr(), i.e. {‘pearson’, ‘kendall’, ‘spearman’} or callable
+    :param figsize: Figure size for matplotlib
+    :param title: Title of the figure
+    :param cmap: Colormap to use (if not default)
+    
+    """
+    
+    if blanks_as_null:
+        missings = (frame.isnull() | (frame == "")).astype('int')
+    else:
+        missings = frame.isnull().astype('int')
+
+    correlation = missings.corr(method=method)
+    fig = _plot_correlation_matrix(correlation, figsize, title, cmap)
+    
+    return fig, correlation
+    
 
 def _check_if_numeric(x):
     
@@ -276,3 +340,24 @@ def _q25(x):
     
 def _q75(x):
     return x.dropna().quantile(0.75)
+
+    
+def _plot_correlation_matrix(correlation, figsize, title, cmap):
+    
+    fig, ax = plt.subplots(1,1, figsize=figsize)
+    
+    img = ax.imshow(correlation, interpolation='none', aspect='auto', vmax=1,vmin=-1, cmap=cmap)
+    plt.colorbar(img,ax=ax)
+
+    x_label_list = correlation.columns.values
+    y_label_list = correlation.index.values
+    
+    ax.set_xticks(range(len(x_label_list)))
+    ax.set_xticklabels(x_label_list, rotation = 45, ha="right")
+    ax.set_yticks(range(len(y_label_list)))
+    ax.set_yticklabels(y_label_list)
+    ax.set_title(title)
+    
+    return fig
+
+

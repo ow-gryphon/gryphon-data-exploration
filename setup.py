@@ -7,7 +7,7 @@ with open('requirements.txt') as fr:
     requirements = fr.read().strip().split('\n')
 
 setuptools.setup(
-    name="gryphon-nct-data-exploration",
+    name="gryphon-data-exploration",
     version="0.0.1",
     author="Daniel Wang",
     author_email="daniel.wang@oliverwyman.com",
