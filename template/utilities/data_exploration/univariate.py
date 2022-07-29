@@ -6,47 +6,42 @@ import matplotlib
 import os
 from math import log10, floor
 
-if (
-    os.name == "nt"
-):  # https://stackoverflow.com/questions/38090455/what-is-the-simplest-way-to-make-matplotlib-in-osx-work-in-a-virtual-environment
-    matplotlib.use("Agg", warn=False)
 import matplotlib.pyplot as plt
 from collections import Counter
 
 
-def plot_histogram_advanced(data, variable_name, save_file=None):
+def plot_histogram_advanced(data, variable_name):
     """
     Plots 8 different types of histograms using various x and y scaling techniques.
 
     :param data: numpy or pd.Series containing the variable for plotting
     :param variable_name: name of variable being plotted, for use in chart names
-    :param save_file: filepath (including filename but without file extension) for .png export. None to not plot
     :return: fig with histograms
     """
 
     # Allocate space for 2 x 4 charts
-    fig = plt.figure(figsize=(15, 30))
+    fig = plt.figure(figsize=(12, 20))
 
     # First plot is a standard histogram
     plt.subplot(421)
     plt.hist(data)
-    plt.title("Histogram of {}".format(variable_name))
+    plt.title("{}".format(variable_name))
 
     # Second plot scales the y-axis via log-transform
     plt.subplot(422)
     plt.hist(data, log=True)
-    plt.title("Histogram of {} w/ log-frequency".format(variable_name))
+    plt.title("{} w/ log-frequency".format(variable_name))
 
     # Third plot scales the x-axis using a robust log transform
     plt.subplot(423)
     plt.hist(np.sign(data) * np.log10(1 + np.abs(data)))
-    plt.title("Histogram of {} with sign(x)log(1+|x|) axis".format(variable_name))
+    plt.title("{} with symlog axis".format(variable_name))
 
     # Fourth plot scales the x-axis using a robust log transform, and y-axis using log transform
     plt.subplot(424)
     plt.hist(np.sign(data) * np.log10(1 + np.abs(data)), log=True)
     plt.title(
-        "Histogram of {} with sign(x)log(1+|x|) axis w/ log-frequency".format(
+        "{} with symlog axis w/ log-frequency".format(
             variable_name
         )
     )
@@ -54,16 +49,16 @@ def plot_histogram_advanced(data, variable_name, save_file=None):
     # Fifth plot uses Doane binning for x-axis
     plt.subplot(425)
     plt.hist(data, bins="doane")
-    plt.title("Histogram of {}".format(variable_name))
+    plt.title("{}".format(variable_name))
 
     # Sixth plot uses Doane binning for x-axis, and scales y-axis using log-transform
     plt.subplot(426)
     plt.hist(data, bins="doane", log=True)
-    plt.title("Histogram of {} w/ log-frequency".format(variable_name))
+    plt.title("{} w/ log-frequency".format(variable_name))
 
     # Seventh plot uses bespoke binning for the x-axis
     # Eighth plot uses bespoke binning for the x-axis, and log-transform for the y-axis
-    magnitude = np.floor(np.log10(abs(data)))
+    magnitude = np.floor(np.log10(0.00001+abs(data)))
     magnitude = magnitude[~np.isinf(magnitude)]
     max_m = int(max(magnitude))
     min_m = int(min(magnitude))
@@ -72,10 +67,10 @@ def plot_histogram_advanced(data, variable_name, save_file=None):
         if sum(magnitude < (max_m - 3)) < len(magnitude) / 5:
             plt.subplot(427)
             plt.hist(data, bins="auto")
-            plt.title("Histogram of {}".format(variable_name))
+            plt.title("{}".format(variable_name))
             plt.subplot(428)
             plt.hist(data, bins="auto", log=True)
-            plt.title("Histogram of {} w/ log-frequency".format(variable_name))
+            plt.title("{} w/ log-frequency".format(variable_name))
         else:
             breaks = [0]
             for m in range(min_m, max_m + 1):
@@ -99,22 +94,18 @@ def plot_histogram_advanced(data, variable_name, save_file=None):
             plt.subplot(427)
             plt.bar(range(0, len(break_names)), vals[range(1, len(vals) - 1)])
             plt.xticks(range(0, len(break_names)), break_names, rotation=90)
-            plt.title("Histogram of {}".format(variable_name))
+            plt.title("{}".format(variable_name))
             ax = plt.subplot(428)
             plt.bar(range(0, len(break_names)), vals[range(1, len(vals) - 1)])
             ax.set_yscale("log")
             plt.xticks(range(0, len(break_names)), break_names, rotation=90)
-            plt.title("Histogram of {}".format(variable_name))
+            plt.title("{}".format(variable_name))
 
-    if save_file is not None:
-        fig.savefig("{}.png".format(save_file))  # save the figure to file
-
-    plt.close(fig)
     return fig
 
 
 def plot_histogram_body(
-    data, variable_name, probs_exclude=[0, 0.05, 0.1], winsorize=False, save_file=None
+    data, variable_name, min_val=None, max_val=None, prob_exclude = 0.05, winsorize=False
 ):
     """
     This generates one or more histogram plot on the body of a variable (not the full distribution).
@@ -129,56 +120,83 @@ def plot_histogram_body(
     :return: figure with histogram
     """
 
-    # Identify the number of plots that will be needed
-    num_charts = len(probs_exclude)
+    if (min_val is not None) or (max_val is not None):
+        lower_threshold = min_val
+        upper_threshold = max_val
+        
+        title = "Histogram of {} from {} to {}".format(variable_name, min_val, max_val)
+    
+    elif prob_exclude is not None:
 
-    if num_charts == 0:
-        raise AttributeError(
-            "You did not specify any histogram plots via the probs_exclude argument"
-        )
-
-    for chart_num in range(0, num_charts):
-        this_prob = probs_exclude[chart_num]
-
-        lower_prob = min(this_prob, 1 - this_prob)
+        lower_prob = min(prob_exclude, 1 - prob_exclude)
         if lower_prob < 0:
-            continue
+            raise AttributeError(
+                "You specified a negative percentile"
+            )
         upper_prob = 1 - lower_prob
 
         lower_threshold = np.percentile(data, lower_prob * 100)
         upper_threshold = np.percentile(data, upper_prob * 100)
-        if winsorize:
-            temp_data = data
+        
+        title = "Histogram of {} from {} to {}".format(variable_name, lower_prob, upper_prob)
+    else:
+        raise AttributeError(
+            "You did not specify any thresholds for the histogram"
+        )
+        
+    if winsorize:
+        temp_data = data
+        if lower_threshold is not None:
             temp_data[data < lower_threshold] = lower_threshold
+        
+        if upper_threshold is not None:
             temp_data[data > upper_threshold] = upper_threshold
-        else:
-            temp_data = data[(data >= lower_threshold) & (data <= upper_threshold)]
+            
+    else:
+        temp_data = data[(data >= lower_threshold) & (data <= upper_threshold)]
 
-        fig = plt.figure(figsize=(20, 10))
-        plt.subplot(121)
-        plt.hist(temp_data)
-        plt.title(
-            "Histogram of {} from {} to {}".format(
-                variable_name, lower_prob, upper_prob
-            )
-        )
-        plt.subplot(122)
-        plt.hist(temp_data, log=True)
-        plt.title(
-            "Histogram of {} from {} to {}".format(
-                variable_name, lower_prob, upper_prob
-            )
-        )
-
-        if save_file is not None:
-            fig.savefig(
-                "{}_{}.png".format(save_file, this_prob)
-            )  # save the figure to file
-
-        plt.close(fig)
+    fig, ax = plt.subplots()
+    ax.hist(temp_data)
+    ax.set_title(title)
+    
 
     return fig
 
+
+def export_univariate_summary_numeric(
+    dataset,
+    variable_names,
+    output_folder = "sample_output",
+    moments=True,
+    stats=True,
+    quantiles=True,
+    extreme=True,
+    hist=True,
+    weights=None,
+):
+    
+    # Check output
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder, exist_ok=True)
+    
+    for variable in variable_names:
+        print("Processing {}".format(variable))
+        figure, output = univariate_summary_numeric(
+            data = dataset[variable],
+            data_name = variable,
+            moments=moments,
+            stats=stats,
+            quantiles=quantiles,
+            extreme=extreme,
+            hist=hist,
+            weights=weights,
+        )
+        
+        plt.savefig("{}/{}.png".format(output_folder, variable))
+        plt.close()
+        
+    return "Completed"
+    
 
 def univariate_summary_numeric(
     data,
@@ -207,11 +225,15 @@ def univariate_summary_numeric(
     """
 
     # Round to significant figures
-    def round_sig(x, sig=2):
-        try:
-            rounded = round(x, sig - int(floor(log10(abs(x)))) - 1)
-        except:
-            rounded = np.nan
+    def round_sig(x, sig=2, digit=True):
+    
+        if np.log10(0.00001+abs(x)) > 2:
+            rounded = round(x, 0)
+        else:
+            try:
+                rounded = round(x, sig - int(floor(log10(abs(x)))) - 1)
+            except:
+                rounded = np.nan
         return rounded
 
     if isinstance(data, pd.Series):
@@ -291,8 +313,8 @@ def univariate_summary_numeric(
                     round_sig(stdev / mean, 3),
                 ],
                 [
-                    "Sum Weights",
-                    "Sum Observations",
+                    "Sum of Weights",
+                    "Sum of Observations",
                     "Variance",
                     "Kurtosis",
                     "Corrected SS",
