@@ -5,6 +5,7 @@ import scipy.stats
 import matplotlib
 import os
 from math import log10, floor
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 from collections import Counter
@@ -179,6 +180,10 @@ def export_univariate_summary_numeric(
     if not os.path.exists(output_folder):
         os.makedirs(output_folder, exist_ok=True)
     
+    now = datetime.now() # current date and time
+    time_for_filename = now.strftime("%Y%m%d %H%M")
+    os.makedirs(os.path.join(output_folder, time_for_filename), exist_ok=True)
+    
     for variable in variable_names:
         print("Processing {}".format(variable))
         figure, output = univariate_summary_numeric(
@@ -192,7 +197,7 @@ def export_univariate_summary_numeric(
             weights=weights,
         )
         
-        plt.savefig("{}/{}.png".format(output_folder, variable))
+        plt.savefig("{}.png".format(os.path.join(output_folder, time_for_filename, variable)))
         plt.close()
         
     return "Completed"
@@ -466,6 +471,49 @@ def univariate_summary_numeric(
     return fig, output_dict
 
 
+def export_univariate_summary_categorical(
+    dataset,
+    variable_names,
+    output_folder = "sample_output",
+    stats=True,
+    freq=True,
+    freq_plot=True,
+    max_num=10 
+):
+    """
+    Generate basic information for multiple categorical variables, and save these as .png files
+
+    :param dataset: pandas dataframe containing the data
+    :param variable_names: list of names of categorical variables (or numerical variables to be treated as categorical)
+    :param stats: generate basic statistics about the variable
+    :param freq: generate frequency table for the most common values (and the least common)
+    :param freq_plot: generate frequency plot (barplot)
+    :param max_num: maximum number of top occurrences to use in frequency count
+    :return: Tuple with figure with all information requested, and dictionary with the results
+    """
+    
+    # Check output
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder, exist_ok=True)
+    
+    now = datetime.now() # current date and time
+    time_for_filename = now.strftime("%Y%m%d %H%M")
+    os.makedirs(os.path.join(output_folder, time_for_filename), exist_ok=True)
+    
+    for variable in variable_names:
+        print("Processing {}".format(variable))
+        figure, output = univariate_summary_categorical(
+            data = dataset[variable],
+            data_name = variable,
+            stats=stats, freq=freq, freq_plot=freq_plot, max_num=max_num
+        )
+        
+        plt.savefig("{}.png".format(os.path.join(output_folder, time_for_filename, variable)))
+        plt.close()
+        
+    return "Completed"
+
+
 def univariate_summary_categorical(
     data, data_name, stats=True, freq=True, freq_plot=True, max_num=10
 ):
@@ -480,7 +528,9 @@ def univariate_summary_categorical(
     :param max_num: maximum number of top occurrences to use in frequency count
     :return: Tuple with figure with all information requested, and dictionary with the results
     """
-
+    
+    data = data.copy().astype(str)
+    
     # Round to significant figures
     def round_sig(x, sig=2):
         try:
@@ -613,3 +663,5 @@ def univariate_summary_categorical(
             plot_counter += 1
     plt.close(fig)
     return fig, output_dict
+
+
