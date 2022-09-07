@@ -1,9 +1,0 @@
-pandas
-numpy
-scipy
-seaborn
-matplotlib
-jupyter
-openpyxl
-pandas-profiling
-scikit-learn
