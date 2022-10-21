@@ -1,7 +1,7 @@
 {
     "display_name": "General Data Diagnostics",
     "keywords": ["Data", "Data Diagnostics", "Data Exploration", "Diagnostics", "Data Integrity", "Data Completeness"],
-    "methodology": ["Data Exploration"],
+    "methodology": ["Data exploration and transformation"],
     "command": "generate",
     "author": "Daniel Wang",
     "description": "Provides a range of methods for exploring and visualizing a dataset. This includes capability to look across the dataset as well as to investigate individual variables (numerical, categorical) fields in-depth. This does not provide time-aware exploration capabilities, as those are in another package.",
