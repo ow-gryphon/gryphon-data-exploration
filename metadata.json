@@ -1,5 +1,5 @@
 {
-    "display_name": "General Data Diagnostics",
+    "display_name": "Data exploration and diagnostics",
     "keywords": ["Data", "Data Diagnostics", "Data Exploration", "Diagnostics", "Data Integrity", "Data Completeness"],
     "methodology": ["Data exploration and transformation"],
     "command": "generate",
