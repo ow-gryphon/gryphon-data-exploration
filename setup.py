@@ -3,7 +3,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open('requirements.txt') as fr:
+with open('gryphon_requirements.txt') as fr:
     requirements = fr.read().strip().split('\n')
 
 setuptools.setup(
