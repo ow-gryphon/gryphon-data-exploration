@@ -1,6 +1,6 @@
 import setuptools
 
-with open("template/README.md", "r") as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
 with open('requirements.txt') as fr:
