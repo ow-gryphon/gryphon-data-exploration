@@ -353,7 +353,7 @@ def univariate_summary_numeric(
         stdev = np.sqrt(variance)
         mean = description[2]
         median = np.median(clean_data)
-        mode = scipy.stats.mode(clean_data)[0][0]
+        mode = scipy.stats.mode(clean_data, keepdims=True)[0][0]
         missing = len(data) - len(clean_data)
         ranges = description[1][1] - description[1][0]
         iqr = scipy.stats.iqr(clean_data)
