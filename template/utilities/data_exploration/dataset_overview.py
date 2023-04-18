@@ -331,7 +331,10 @@ def _check_if_datetime(x):
     num_missing_before = x.isnull().sum()
     
     try:
-        x_datetime = pd.to_datetime(x)
+        if pd.__version__ < '2.0'
+            x_datetime = pd.to_datetime(x)
+        else:
+            x_datetime = pd.to_datetime(x, format='mixed')
     except:
         return "No"
     

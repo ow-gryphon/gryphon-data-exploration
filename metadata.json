@@ -5,6 +5,6 @@
     "command": "generate",
     "author": "Daniel Wang",
     "description": "Provides a range of methods for exploring and visualizing a dataset. This includes capability to look across the dataset as well as to investigate individual variables (numerical, categorical) fields in-depth. This does not provide time-aware exploration capabilities, as those are in another package.",
-    "dependencies": ["jupyter","openpyxl","pandas", "numpy", "matplotlib", "seaborn", "pandas-profiling", "scipy", "scikit-learn"],
+    "dependencies": ["jupyter","openpyxl","pandas", "numpy", "matplotlib", "seaborn", "ydata-profiling", "scipy", "scikit-learn"],
     "read_more_link": "https://github.com/ow-gryphon/gryphon-data-exploration"
 }
