@@ -8,7 +8,7 @@ with open('gryphon_requirements.txt') as fr:
 
 setuptools.setup(
     name="gryphon-data-exploration",
-    version="0.0.13",
+    version="0.0.14",
     author="Daniel Wang",
     author_email="daniel.wang@oliverwyman.com",
     description="Data diagnostics for general data",
